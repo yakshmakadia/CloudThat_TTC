@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Tic-Tac-Toe: ☠️ vs 😊</title>
+    <title>Tic-Tac-Toe: ☠️ vs 😊 - With AI Trash-Talk Commentator</title>
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -57,6 +57,37 @@
                     <label for="p2-name" class="form-label">Player 2 Name</label>
                     <input type="text" id="p2-name" class="form-input" placeholder="Player 2" value="Player 2" maxlength="12">
                     <p class="form-hint">Gets the other emoji: <strong id="p2-assigned-emoji">😊</strong></p>
+                </div>
+
+                <!-- AI Commentator Settings -->
+                <div class="ai-config-box">
+                    <div class="ai-config-header">
+                        <span class="ai-config-title">🎙️ AI Commentator Personality</span>
+                    </div>
+                    <div class="personality-select-group">
+                        <button type="button" class="personality-btn active" data-personality="savage">
+                            <span class="p-emoji">☠️</span>
+                            <span class="p-name">Savage Roaster</span>
+                        </button>
+                        <button type="button" class="personality-btn" data-personality="hype">
+                            <span class="p-emoji">🔥</span>
+                            <span class="p-name">Hype Caster</span>
+                        </button>
+                        <button type="button" class="personality-btn" data-personality="zen">
+                            <span class="p-emoji">😊</span>
+                            <span class="p-name">Zen Coach</span>
+                        </button>
+                    </div>
+
+                    <div class="api-key-wrapper">
+                        <label for="gemini-key-input" class="form-label api-label">
+                            Google Gemini API Key <span class="opt-tag">(Optional)</span>
+                        </label>
+                        <input type="password" id="gemini-key-input" class="form-input api-input" placeholder="Paste Gemini API key for live AI generation">
+                        <p class="api-hint">
+                            Works right out-of-the-box with built-in witty quips! Or enter a free key from <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener">Google AI Studio</a> for infinite unique roasts.
+                        </p>
+                    </div>
                 </div>
 
                 <button type="button" id="start-local-btn" class="btn btn-primary modal-action-btn">
@@ -139,7 +170,7 @@
     <main class="game-container">
         <!-- Top Header -->
         <header class="game-header">
-            <button type="button" id="open-setup-btn" class="icon-btn header-left-btn" title="Switch Game Mode / Players" aria-label="Game Settings">
+            <button type="button" id="open-setup-btn" class="icon-btn header-left-btn" title="Game &amp; AI Settings" aria-label="Game Settings">
                 ⚙️
             </button>
             <div class="header-content">
@@ -149,7 +180,7 @@
                     <span id="online-status-text">Online Match</span>
                 </div>
             </div>
-            <button type="button" id="sound-toggle" class="icon-btn header-right-btn" title="Toggle Sound" aria-label="Toggle Sound">
+            <button type="button" id="sound-toggle" class="icon-btn header-right-btn" title="Toggle Sound FX" aria-label="Toggle Sound">
                 <span id="sound-icon">🔊</span>
             </button>
         </header>
@@ -176,6 +207,27 @@
                     <span id="score-o-name" class="score-player-name">Player 2</span>
                 </div>
                 <div id="score-o" class="score-value">0</div>
+            </div>
+        </section>
+
+        <!-- AI Trash-Talk & Hype Commentator Card -->
+        <section class="ai-commentator-card" aria-label="AI Commentator">
+            <div class="ai-commentator-top">
+                <div class="ai-badge">
+                    <span id="ai-avatar" class="ai-avatar-icon">🤖</span>
+                    <div class="ai-meta">
+                        <span class="ai-name">AI Commentator</span>
+                        <span id="ai-personality-badge" class="ai-personality-tag">Savage Roaster ☠️</span>
+                    </div>
+                </div>
+                <button type="button" id="tts-toggle-btn" class="tts-pill active" title="Toggle AI Commentator Voice (Spoken Audio)">
+                    <span id="tts-icon">🗣️</span> <span id="tts-label">Voice ON</span>
+                </button>
+            </div>
+            <div class="commentary-bubble">
+                <p id="commentary-text" class="commentary-text">
+                    "Welcome to the arena! Let's see who's got brains and who's just clicking buttons."
+                </p>
             </div>
         </section>
 

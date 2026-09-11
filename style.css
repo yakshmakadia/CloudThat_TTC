@@ -1,6 +1,6 @@
 /* ==========================================================================
    Modern Responsive Styles for Emoji Tic-Tac-Toe (☠️ vs 😊)
-   Online Multiplayer & Custom Player Setup
+   Online Multiplayer & GenAI Trash-Talk Commentator
    ========================================================================== */
 
 :root {
@@ -22,6 +22,9 @@
     --color-win: #34d399;
     --color-win-glow: rgba(52, 211, 153, 0.6);
     
+    --ai-purple: #a855f7;
+    --ai-purple-glow: rgba(168, 85, 247, 0.35);
+
     --text-primary: #f8fafc;
     --text-secondary: #94a3b8;
     --text-muted: #64748b;
@@ -63,7 +66,7 @@ body {
 }
 
 /* ==========================================================================
-   Modal Dialog (Setup & Multiplayer)
+   Modal Dialog (Setup & Multiplayer & AI Settings)
    ========================================================================== */
 .modal-backdrop {
     position: fixed;
@@ -71,7 +74,7 @@ body {
     left: 0;
     width: 100vw;
     height: 100vh;
-    background: rgba(10, 15, 29, 0.82);
+    background: rgba(10, 15, 29, 0.84);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     display: flex;
@@ -82,6 +85,7 @@ body {
     opacity: 1;
     visibility: visible;
     transition: all 0.3s ease;
+    overflow-y: auto;
 }
 
 .modal-backdrop.hidden {
@@ -96,9 +100,11 @@ body {
     border-radius: 28px;
     box-shadow: 0 30px 70px rgba(0, 0, 0, 0.7), 0 0 40px rgba(139, 92, 246, 0.25);
     width: 100%;
-    max-width: 420px;
-    padding: 28px 24px;
+    max-width: 440px;
+    padding: 26px 22px;
     animation: modalPopIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    max-height: 90vh;
+    overflow-y: auto;
 }
 
 @keyframes modalPopIn {
@@ -114,7 +120,7 @@ body {
 
 .modal-header {
     text-align: center;
-    margin-bottom: 20px;
+    margin-bottom: 18px;
 }
 
 .modal-title {
@@ -139,7 +145,7 @@ body {
     padding: 4px;
     border-radius: 16px;
     border: 1px solid rgba(255, 255, 255, 0.08);
-    margin-bottom: 22px;
+    margin-bottom: 20px;
     gap: 4px;
 }
 
@@ -176,7 +182,7 @@ body {
 .setup-panel {
     display: none;
     flex-direction: column;
-    gap: 16px;
+    gap: 14px;
 }
 
 .setup-panel.active {
@@ -190,7 +196,7 @@ body {
 }
 
 .form-label {
-    font-size: 0.85rem;
+    font-size: 0.82rem;
     font-weight: 600;
     color: var(--text-secondary);
     text-transform: uppercase;
@@ -202,9 +208,9 @@ body {
     background: rgba(15, 23, 42, 0.65);
     border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 14px;
-    padding: 12px 16px;
+    padding: 11px 14px;
     font-family: var(--font-ui);
-    font-size: 1rem;
+    font-size: 0.95rem;
     color: #ffffff;
     outline: none;
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
@@ -236,7 +242,7 @@ body {
     background: rgba(15, 23, 42, 0.6);
     border: 2px solid rgba(255, 255, 255, 0.1);
     border-radius: 16px;
-    padding: 12px;
+    padding: 10px;
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -246,7 +252,7 @@ body {
 }
 
 .emoji-select-btn .emoji-char {
-    font-size: 2.2rem;
+    font-size: 2rem;
     line-height: 1;
     transition: transform 0.25s ease;
 }
@@ -265,6 +271,105 @@ body {
 
 .emoji-select-btn.active .emoji-char {
     transform: scale(1.15);
+}
+
+/* AI Config Box */
+.ai-config-box {
+    background: rgba(15, 23, 42, 0.65);
+    border: 1px solid rgba(168, 85, 247, 0.25);
+    border-radius: 18px;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 4px;
+}
+
+.ai-config-title {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #e9d5ff;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.personality-select-group {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+
+.personality-btn {
+    background: rgba(30, 41, 59, 0.65);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 8px 4px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.personality-btn .p-emoji {
+    font-size: 1.3rem;
+}
+
+.personality-btn .p-name {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-align: center;
+    white-space: nowrap;
+}
+
+.personality-btn:hover {
+    border-color: rgba(168, 85, 247, 0.4);
+    background: rgba(168, 85, 247, 0.15);
+}
+
+.personality-btn.active {
+    border-color: var(--ai-purple);
+    background: rgba(168, 85, 247, 0.25);
+    box-shadow: 0 0 14px rgba(168, 85, 247, 0.4);
+}
+
+.personality-btn.active .p-name {
+    color: #ffffff;
+}
+
+.api-key-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    margin-top: 4px;
+}
+
+.api-label {
+    font-size: 0.76rem !important;
+}
+
+.opt-tag {
+    color: #34d399;
+    font-weight: normal;
+    text-transform: none;
+}
+
+.api-input {
+    padding: 8px 12px !important;
+    font-size: 0.85rem !important;
+}
+
+.api-hint {
+    font-size: 0.76rem;
+    color: var(--text-muted);
+    line-height: 1.35;
+}
+
+.api-hint a {
+    color: #a855f7;
+    text-decoration: underline;
 }
 
 .modal-action-btn {
@@ -434,11 +539,11 @@ body {
     border: 1px solid var(--card-border);
     border-radius: 28px;
     box-shadow: var(--card-shadow);
-    padding: 24px 22px;
+    padding: 22px 20px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 16px;
+    gap: 14px;
     transition: transform 0.3s ease;
     animation: fadeInContainer 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -596,6 +701,133 @@ body {
 
 .player-o .score-value {
     color: var(--color-o);
+}
+
+/* ==========================================================================
+   AI Commentator Box & Animation
+   ========================================================================== */
+.ai-commentator-card {
+    width: 100%;
+    background: rgba(15, 23, 42, 0.75);
+    border: 1px solid rgba(168, 85, 247, 0.35);
+    border-radius: 18px;
+    padding: 12px 14px;
+    box-shadow: 0 4px 20px rgba(168, 85, 247, 0.15);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    transition: all 0.3s ease;
+}
+
+.ai-commentator-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.ai-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.ai-avatar-icon {
+    font-size: 1.4rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: rgba(168, 85, 247, 0.25);
+    border-radius: 50%;
+    box-shadow: 0 0 10px rgba(168, 85, 247, 0.4);
+    transition: transform 0.3s ease;
+}
+
+.ai-avatar-icon.talking {
+    animation: aiTalkingPulse 0.8s infinite alternate;
+}
+
+@keyframes aiTalkingPulse {
+    from {
+        transform: scale(1);
+        box-shadow: 0 0 10px rgba(168, 85, 247, 0.4);
+    }
+    to {
+        transform: scale(1.15);
+        box-shadow: 0 0 20px rgba(168, 85, 247, 0.8);
+    }
+}
+
+.ai-meta {
+    display: flex;
+    flex-direction: column;
+}
+
+.ai-name {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #e9d5ff;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+}
+
+.ai-personality-tag {
+    font-size: 0.7rem;
+    color: #c084fc;
+    font-weight: 500;
+}
+
+.tts-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 20px;
+    padding: 4px 10px;
+    font-family: var(--font-ui);
+    font-size: 0.74rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.tts-pill.active {
+    background: rgba(168, 85, 247, 0.2);
+    border-color: rgba(168, 85, 247, 0.5);
+    color: #e9d5ff;
+}
+
+.tts-pill:hover {
+    transform: scale(1.05);
+}
+
+.commentary-bubble {
+    background: rgba(30, 41, 59, 0.6);
+    border-radius: 12px;
+    padding: 8px 12px;
+    border-left: 3px solid var(--ai-purple);
+}
+
+.commentary-text {
+    font-size: 0.88rem;
+    font-style: italic;
+    color: #f1f5f9;
+    line-height: 1.35;
+    animation: fadeInCommentary 0.4s ease;
+}
+
+@keyframes fadeInCommentary {
+    from {
+        opacity: 0;
+        transform: translateY(4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* Turn Section */
@@ -899,13 +1131,13 @@ body {
     }
 
     .game-container {
-        padding: 18px 14px;
+        padding: 16px 14px;
         border-radius: 22px;
-        gap: 14px;
+        gap: 12px;
     }
 
     .modal-card {
-        padding: 22px 16px;
+        padding: 20px 14px;
         border-radius: 22px;
     }
 

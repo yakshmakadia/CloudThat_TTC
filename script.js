@@ -1,8 +1,10 @@
 /**
  * Tic-Tac-Toe: ☠️ vs 😊
  * Features:
- * - Custom player names
- * - Choose between ☠️ Skull and 😊 Smiling face
+ * - Real-Time AI Trash-Talk & Hype Commentator (Gemini API + Contextual Smart Quips)
+ * - Spoken Text-to-Speech (TTS) Voice Commentary
+ * - Selectable AI Personalities (Savage Roaster ☠️, Hype Caster 🔥, Zen Coach 😊)
+ * - Custom player names and emoji selection
  * - Real-time online multiplayer via WebRTC (PeerJS) with shareable links
  * - Local Pass & Play offline mode
  * - Synthesized sound effects, scoreboard, confetti celebration
@@ -39,6 +41,16 @@ document.addEventListener("DOMContentLoaded", () => {
     const openSetupBtn = document.getElementById("open-setup-btn");
     const onlineStatusPill = document.getElementById("online-status-pill");
     const onlineStatusText = document.getElementById("online-status-text");
+
+    // AI Commentator Elements
+    const aiAvatar = document.getElementById("ai-avatar");
+    const aiPersonalityBadge = document.getElementById("ai-personality-badge");
+    const commentaryText = document.getElementById("commentary-text");
+    const ttsToggleBtn = document.getElementById("tts-toggle-btn");
+    const ttsIcon = document.getElementById("tts-icon");
+    const ttsLabel = document.getElementById("tts-label");
+    const personalityBtns = document.querySelectorAll(".personality-btn");
+    const geminiKeyInput = document.getElementById("gemini-key-input");
 
     // DOM Elements - Setup Modal
     const setupModal = document.getElementById("setup-modal");
@@ -80,21 +92,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Game Configuration State
     let gameMode = "local"; // "local" or "online"
-    let localPlayerEmoji = EMOJI_SKULL; // In online mode, the local browser's emoji
+    let localPlayerEmoji = EMOJI_SKULL;
     let isHost = false;
     let peer = null;
     let connection = null;
     let pendingRoomId = null;
 
-    // Player 1 (Player X) & Player 2 (Player O)
-    let player1 = {
-        name: "Player 1",
-        emoji: EMOJI_SKULL
-    };
-    let player2 = {
-        name: "Player 2",
-        emoji: EMOJI_SMILEY
-    };
+    // Player 1 & Player 2
+    let player1 = { name: "Player 1", emoji: EMOJI_SKULL };
+    let player2 = { name: "Player 2", emoji: EMOJI_SMILEY };
 
     // Board State
     let currentPlayer = player1.emoji;
@@ -102,16 +108,157 @@ document.addEventListener("DOMContentLoaded", () => {
     let isGameActive = true;
     let scores = { x: 0, o: 0, ties: 0 };
     let isMuted = false;
+    let isVoiceEnabled = true;
+    let currentPersonality = "savage"; // "savage", "hype", "zen"
+    let geminiApiKey = "";
+    let moveCount = 0;
 
     // ----------------------------------------------------
-    // Sound & Storage Initialization
+    // AI Commentator Personalities & Quip Banks
+    // ----------------------------------------------------
+    const PERSONALITIES = {
+        savage: {
+            name: "Savage Roaster \u2620\ufe0f",
+            badge: "Savage Roaster \u2620\ufe0f",
+            pitch: 0.9,
+            rate: 1.05,
+            openings: [
+                "And so it begins! Try not to embarrass your ancestors with this move.",
+                "Starting off bold, or did your finger just slip?",
+                "Center grab? Wow, how utterly predictable.",
+                "First move made. My expectations are in the basement."
+            ],
+            blocks: [
+                "Denied! You thought you had an easy victory? Think again!",
+                "Blocked! That defense was actually not terrible.",
+                "Nice cockblock! The tension is slightly less boring now."
+            ],
+            blunders: [
+                "Did you seriously leave that wide open? A toddler could win right now!",
+                "Are you playing to win, or are you secretly donating points?",
+                "Bold strategy! By bold, I mean spectacularly foolish."
+            ],
+            general: [
+                "Fascinating. An entire board and that's the square you chose?",
+                "Every move brings us closer to the sweet release of a game over.",
+                "The clock is ticking and my patience is vanishing!",
+                "Calculating your chances of winning... Error: Number too low to display."
+            ],
+            wins: [
+                "Pack your bags, loser! Absolute domination on this board!",
+                "Checkmate! Well, not chess, but you got destroyed anyway!",
+                "Flawless execution! Someone call an ambulance for the opponent's pride!"
+            ],
+            draws: [
+                "A draw? Both of you managed to fail at winning together. Poetic.",
+                "Nine squares filled, zero brains utilized. Classic tie.",
+                "Nobody wins, and everyone lost two minutes of their lives."
+            ]
+        },
+        hype: {
+            name: "Hype Caster 🔥",
+            badge: "Hype Caster 🔥",
+            pitch: 1.2,
+            rate: 1.2,
+            openings: [
+                "WELCOME TO THE ARENA! THE CROWD IS ELECTRIC FOR MOVE ONE!",
+                "FIRST MOVE ON THE BOARD! THE AGGRESSION IS UNREAL TODAY!",
+                "CENTER STAGE CLAIMED! THIS MATCH IS GOING DOWN IN HISTORY!"
+            ],
+            blocks: [
+                "CLUTCH DEFENSE! WHAT A HUGE BLOCK FROM DOWNTOWN!",
+                "REJECTED AT THE RIM! THAT WIN CONDITION IS SHUT DOWN!",
+                "UNBELIEVABLE REFLEXES! THEY SAW IT COMING FROM A MILE AWAY!"
+            ],
+            blunders: [
+                "OH NO! DANGER ZONE! THE TRAP IS SET WIDE OPEN!",
+                "HIGH RISK MOVE! CAN THEY SURVIVE THE NEXT TURN?!",
+                "MY HEART CANNOT TAKE THIS! ABSOLUTE CHAOS ON THE GRID!"
+            ],
+            general: [
+                "THE MIND GAMES ARE OFF THE CHARTS IN THIS ARENA!",
+                "TACTICAL MASTERY ON DISPLAY! WHO WILL BLINK FIRST?!",
+                "EVERY SINGLE SQUARE COUNTS! WE ARE WITNESSING GREATNESS!"
+            ],
+            wins: [
+                "BOOM! IT'S OVER! WHAT AN ASTONISHING CHAMPIONSHIP VICTORY!",
+                "THREE IN A ROW! THE CROWD GOES ABSOLUTELY WILD!",
+                "UNSTOPPABLE! WRITE IT IN THE HISTORY BOOKS, WE HAVE A WINNER!"
+            ],
+            draws: [
+                "AN IMMOVABLE OBJECT MEETS AN UNSTOPPABLE FORCE! IT IS A DRAW!",
+                "DEADLOCK! A COMPLETE STALEMATE AFTER A LEGENDARY BATTLE!"
+            ]
+        },
+        zen: {
+            name: "Zen Coach \U0001F60A",
+            badge: "Zen Coach \U0001F60A",
+            pitch: 0.95,
+            rate: 0.9,
+            openings: [
+                "Breathe in tranquility. A peaceful opening for a mindful journey.",
+                "Every move is a lesson. Place your marker with inner peace.",
+                "The board is a blank canvas. Paint it with harmony."
+            ],
+            blocks: [
+                "A mindful block. True balance has been preserved on the board.",
+                "Patience rewarded. You deflected the storm with calmness."
+            ],
+            blunders: [
+                "A gentle slip. Do not despair, every misstep is an opportunity to learn.",
+                "Stay centered. Even in chaos, your spirit remains untroubled."
+            ],
+            general: [
+                "Feel the flow of the game. Win or lose, peace resides within.",
+                "A thoughtful choice. The grid reflects your inner contemplation.",
+                "Observe without judgment. Beautiful patterns are forming."
+            ],
+            wins: [
+                "Splendid triumph! Victory and grace walk hand in hand.",
+                "Congratulations. Your patience has blossomed into harmony."
+            ],
+            draws: [
+                "A perfect equilibrium. Neither won, neither lost. Pure balance."
+            ]
+        }
+    };
+
+    // ----------------------------------------------------
+    // Storage & State Initialization
     // ----------------------------------------------------
     try {
+        const savedKey = localStorage.getItem("tictactoe_gemini_key");
+        if (savedKey) {
+            geminiApiKey = savedKey;
+            geminiKeyInput.value = savedKey;
+        }
+        const savedPersonality = localStorage.getItem("tictactoe_personality");
+        if (savedPersonality && PERSONALITIES[savedPersonality]) {
+            currentPersonality = savedPersonality;
+        }
+        const savedVoice = localStorage.getItem("tictactoe_voice");
+        if (savedVoice !== null) {
+            isVoiceEnabled = JSON.parse(savedVoice);
+        }
         const savedMute = localStorage.getItem("tictactoe_muted");
         if (savedMute !== null) {
             isMuted = JSON.parse(savedMute);
         }
     } catch (e) {}
+
+    function updatePersonalityUI() {
+        const p = PERSONALITIES[currentPersonality] || PERSONALITIES.savage;
+        aiPersonalityBadge.textContent = p.badge;
+        personalityBtns.forEach((btn) => {
+            btn.classList.toggle("active", btn.getAttribute("data-personality") === currentPersonality);
+        });
+    }
+
+    function updateVoiceButton() {
+        ttsToggleBtn.classList.toggle("active", isVoiceEnabled);
+        ttsIcon.textContent = isVoiceEnabled ? "🗣️" : "🤫";
+        ttsLabel.textContent = isVoiceEnabled ? "Voice ON" : "Voice OFF";
+    }
 
     function updateSoundButton() {
         soundIcon.textContent = isMuted ? "\u{1F507}" : "\u{1F50A}";
@@ -119,6 +266,149 @@ document.addEventListener("DOMContentLoaded", () => {
         soundToggleBtn.title = isMuted ? "Unmute Sound" : "Mute Sound";
     }
 
+    // ----------------------------------------------------
+    // Text-to-Speech (TTS) Engine
+    // ----------------------------------------------------
+    function speakCommentary(text) {
+        if (!isVoiceEnabled || !("speechSynthesis" in window)) return;
+        try {
+            window.speechSynthesis.cancel(); // Stop prior speech
+            const cleanText = text.replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/gu, "").trim();
+            if (!cleanText) return;
+
+            const utterance = new SpeechSynthesisUtterance(cleanText);
+            const p = PERSONALITIES[currentPersonality] || PERSONALITIES.savage;
+            utterance.pitch = p.pitch;
+            utterance.rate = p.rate;
+
+            // Pick a good English voice if available
+            const voices = window.speechSynthesis.getVoices();
+            if (voices.length > 0) {
+                const enVoice = voices.find((v) => v.lang.startsWith("en") && !v.name.includes("Whisper"));
+                if (enVoice) utterance.voice = enVoice;
+            }
+
+            aiAvatar.classList.add("talking");
+            utterance.onend = () => aiAvatar.classList.remove("talking");
+            utterance.onerror = () => aiAvatar.classList.remove("talking");
+
+            window.speechSynthesis.speak(utterance);
+        } catch (e) {
+            aiAvatar.classList.remove("talking");
+        }
+    }
+
+    // ----------------------------------------------------
+    // GenAI Commentary Engine (Gemini API + Fallback)
+    // ----------------------------------------------------
+    async function requestGeminiCommentary(promptText) {
+        if (!geminiApiKey) return null;
+        try {
+            const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`;
+            const body = {
+                contents: [{ parts: [{ text: promptText }] }],
+                generationConfig: {
+                    maxOutputTokens: 50,
+                    temperature: 0.95
+                }
+            };
+            const response = await fetch(endpoint, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(body)
+            });
+            if (!response.ok) return null;
+            const data = await response.json();
+            const reply = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+            return reply ? reply.replace(/^["']|["']$/g, "") : null;
+        } catch (e) {
+            return null;
+        }
+    }
+
+    function getLocalQuip(category) {
+        const p = PERSONALITIES[currentPersonality] || PERSONALITIES.savage;
+        const pool = p[category] || p.general;
+        return pool[Math.floor(Math.random() * pool.length)];
+    }
+
+    function checkMoveContext(index, playerEmoji) {
+        // Detect if this move blocked an opponent from winning
+        const opponentEmoji = (playerEmoji === player1.emoji) ? player2.emoji : player1.emoji;
+        let isBlock = false;
+        for (let condition of WIN_CONDITIONS) {
+            if (condition.includes(index)) {
+                const otherTwo = condition.filter((idx) => idx !== index);
+                if (boardState[otherTwo[0]] === opponentEmoji && boardState[otherTwo[1]] === opponentEmoji) {
+                    isBlock = true;
+                    break;
+                }
+            }
+        }
+        return { isBlock };
+    }
+
+    async function generateCommentary(contextType, activePlayerName, moveIndex = -1, moveEmoji = "") {
+        let comment = "";
+        const p = PERSONALITIES[currentPersonality] || PERSONALITIES.savage;
+        const personalityDesc = (currentPersonality === "savage")
+            ? "sarcastic, witty, savage roaster who mocks mistakes"
+            : (currentPersonality === "hype")
+            ? "hyper-energetic esports shoutcaster who screams in excitement"
+            : "peaceful, zen meditation coach who stays balanced and calm";
+
+        // If Gemini API Key is present, try LLM generation
+        if (geminiApiKey) {
+            let prompt = `You are a live commentator in a 2-player Tic-Tac-Toe game. Your persona is: ${personalityDesc}.
+Keep your response under 15 words. Be punchy, hilarious, and in-character. No hashtags.
+Context: `;
+
+            if (contextType === "win") {
+                prompt += `Player "${activePlayerName}" just WON the match! Roast the loser or hype the victory!`;
+            } else if (contextType === "draw") {
+                prompt += `The match ended in a DRAW/TIE!`;
+            } else if (contextType === "block") {
+                prompt += `Player "${activePlayerName}" just made a clutch BLOCK against their opponent!`;
+            } else if (moveCount <= 2) {
+                prompt += `Opening move by Player "${activePlayerName}".`;
+            } else {
+                prompt += `Player "${activePlayerName}" just placed their mark at cell ${moveIndex}. Current move count is ${moveCount}.`;
+            }
+
+            comment = await requestGeminiCommentary(prompt);
+        }
+
+        // Fallback to rich contextual smart quips if no API key or fetch error
+        if (!comment) {
+            if (contextType === "win") {
+                comment = getLocalQuip("wins");
+            } else if (contextType === "draw") {
+                comment = getLocalQuip("draws");
+            } else if (contextType === "block") {
+                comment = getLocalQuip("blocks");
+            } else if (moveCount <= 2) {
+                comment = getLocalQuip("openings");
+            } else {
+                comment = getLocalQuip("general");
+            }
+        }
+
+        // Display in UI and trigger voice
+        commentaryText.textContent = `"${comment}"`;
+        speakCommentary(comment);
+
+        // In online mode: send commentary text to peer so both hear the same quip
+        if (gameMode === "online" && connection && connection.open && isHost) {
+            connection.send({
+                type: "COMMENTARY",
+                text: comment
+            });
+        }
+    }
+
+    // ----------------------------------------------------
+    // Sound Synthesizer (Zero External Dependencies)
+    // ----------------------------------------------------
     let audioCtx = null;
     function getAudioContext() {
         if (!audioCtx) {
@@ -252,7 +542,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // ----------------------------------------------------
-    // UI Updates (Scores, Turn Indicators, Cursors)
+    // UI Updates
     // ----------------------------------------------------
     function updateScoreDisplay() {
         scoreXEl.textContent = scores.x;
@@ -280,7 +570,6 @@ document.addEventListener("DOMContentLoaded", () => {
             turnX.classList.remove("active");
         }
 
-        // Online mode: update turn role hint ("Your Turn" vs "Opponent's Turn")
         if (gameMode === "online") {
             turnRoleHint.classList.remove("hidden");
             const isMyTurn = (currentPlayer === localPlayerEmoji);
@@ -296,7 +585,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 turnRoleHint.style.background = "rgba(165, 180, 252, 0.1)";
             }
 
-            // Update cell cursors
             boxes.forEach((box) => {
                 if (!box.classList.contains("taken") && isGameActive) {
                     if (isMyTurn) {
@@ -335,10 +623,12 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // ----------------------------------------------------
-    // Box Click & Board Execution
+    // Move Execution & Box Clicks
     // ----------------------------------------------------
     function applyMove(index, playerEmoji, triggerAudio = true) {
         boardState[index] = playerEmoji;
+        moveCount++;
+
         const box = document.querySelector(`.box[data-index="${index}"]`);
         if (box) {
             box.innerHTML = `<span class="emoji-pop">${playerEmoji}</span>`;
@@ -350,6 +640,9 @@ document.addEventListener("DOMContentLoaded", () => {
         if (triggerAudio) {
             playClickSound(playerEmoji === EMOJI_SKULL);
         }
+
+        const activePlayerName = (playerEmoji === player1.emoji) ? player1.name : player2.name;
+        const moveContext = checkMoveContext(index, playerEmoji);
 
         const winResult = checkWin();
         if (winResult) {
@@ -365,6 +658,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 scores.ties++;
                 updateScoreDisplay();
                 playDrawSound();
+                generateCommentary("draw", activePlayerName);
             } else {
                 winResult.combination.forEach((idx) => {
                     const winBox = document.querySelector(`.box[data-index="${idx}"]`);
@@ -387,8 +681,16 @@ document.addEventListener("DOMContentLoaded", () => {
                 updateScoreDisplay();
                 playWinSound();
                 launchConfetti();
+                generateCommentary("win", winnerName);
             }
         } else {
+            // Commentary on intermediate moves
+            if (moveContext.isBlock) {
+                generateCommentary("block", activePlayerName, index, playerEmoji);
+            } else {
+                generateCommentary("normal", activePlayerName, index, playerEmoji);
+            }
+
             // Switch current player
             currentPlayer = (currentPlayer === player1.emoji) ? player2.emoji : player1.emoji;
             updateTurn();
@@ -401,7 +703,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (!isGameActive || boardState[index]) return;
 
-        // In online mode: only allow move if it is this player's turn
         if (gameMode === "online") {
             if (currentPlayer !== localPlayerEmoji) return;
             if (!connection || !connection.open) {
@@ -413,7 +714,6 @@ document.addEventListener("DOMContentLoaded", () => {
         const moveEmoji = currentPlayer;
         applyMove(index, moveEmoji, true);
 
-        // Send move to peer if online
         if (gameMode === "online" && connection && connection.open) {
             connection.send({
                 type: "MOVE",
@@ -428,6 +728,7 @@ document.addEventListener("DOMContentLoaded", () => {
         currentPlayer = player1.emoji;
         boardState = ["", "", "", "", "", "", "", "", ""];
         isGameActive = true;
+        moveCount = 0;
         results.textContent = "";
         results.className = "results-text";
 
@@ -437,6 +738,8 @@ document.addEventListener("DOMContentLoaded", () => {
             box.setAttribute("aria-label", `Cell ${index + 1}`);
         });
 
+        commentaryText.textContent = `"New round! Let's see who brings their A-game this time."`;
+        speakCommentary("New round! Let's see who brings their A-game.");
         updateTurn();
     }
 
@@ -472,7 +775,6 @@ document.addEventListener("DOMContentLoaded", () => {
         setupModal.classList.add("hidden");
     }
 
-    // Tab Switching
     tabLocal.addEventListener("click", () => {
         tabLocal.classList.add("active");
         tabOnline.classList.remove("active");
@@ -487,7 +789,6 @@ document.addEventListener("DOMContentLoaded", () => {
         panelLocal.classList.remove("active");
     });
 
-    // Local Emoji Selection
     localEmojiBtns.forEach((btn) => {
         btn.addEventListener("click", () => {
             localEmojiBtns.forEach((b) => b.classList.remove("active"));
@@ -499,12 +800,45 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
-    // Online Host Emoji Selection
     onlineEmojiBtns.forEach((btn) => {
         btn.addEventListener("click", () => {
             onlineEmojiBtns.forEach((b) => b.classList.remove("active"));
             btn.classList.add("active");
         });
+    });
+
+    // Personality Selection
+    personalityBtns.forEach((btn) => {
+        btn.addEventListener("click", () => {
+            currentPersonality = btn.getAttribute("data-personality");
+            try {
+                localStorage.setItem("tictactoe_personality", currentPersonality);
+            } catch (e) {}
+            updatePersonalityUI();
+        });
+    });
+
+    // Gemini API Key Input
+    geminiKeyInput.addEventListener("input", () => {
+        geminiApiKey = geminiKeyInput.value.trim();
+        try {
+            localStorage.setItem("tictactoe_gemini_key", geminiApiKey);
+        } catch (e) {}
+    });
+
+    // TTS Voice Toggle
+    ttsToggleBtn.addEventListener("click", () => {
+        isVoiceEnabled = !isVoiceEnabled;
+        updateVoiceButton();
+        try {
+            localStorage.setItem("tictactoe_voice", JSON.stringify(isVoiceEnabled));
+        } catch (e) {}
+        if (!isVoiceEnabled && "speechSynthesis" in window) {
+            window.speechSynthesis.cancel();
+            aiAvatar.classList.remove("talking");
+        } else if (isVoiceEnabled) {
+            speakCommentary("Voice commentary activated!");
+        }
     });
 
     // Start Local Game
@@ -520,6 +854,7 @@ document.addEventListener("DOMContentLoaded", () => {
         scores = { x: 0, o: 0, ties: 0 };
         onlineStatusPill.classList.add("hidden");
 
+        updatePersonalityUI();
         updateScoreDisplay();
         executeRestart(true);
         closeModal();
@@ -532,17 +867,16 @@ document.addEventListener("DOMContentLoaded", () => {
         connection = conn;
 
         connection.on("open", () => {
-            console.log("Peer connection established!");
             onlineStatusPill.classList.remove("hidden");
             onlineStatusText.textContent = `Live with ${isHost ? player2.name : player1.name}`;
 
             if (isHost) {
-                // Host sends INIT state to Guest
                 connection.send({
                     type: "INIT",
                     hostName: player1.name,
                     hostEmoji: player1.emoji,
-                    guestEmoji: player2.emoji
+                    guestEmoji: player2.emoji,
+                    personality: currentPersonality
                 });
                 closeModal();
                 executeRestart(true);
@@ -561,6 +895,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 player1.emoji = data.hostEmoji;
                 player2.emoji = data.guestEmoji;
                 localPlayerEmoji = data.guestEmoji;
+                if (data.personality && PERSONALITIES[data.personality]) {
+                    currentPersonality = data.personality;
+                    updatePersonalityUI();
+                }
                 updateScoreDisplay();
                 onlineStatusPill.classList.remove("hidden");
                 onlineStatusText.textContent = `Live with ${player1.name}`;
@@ -572,6 +910,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 executeRestart(true);
             } else if (data.type === "SCORE_RESET") {
                 executeScoreReset(true);
+            } else if (data.type === "COMMENTARY") {
+                commentaryText.textContent = `"${data.text}"`;
+                speakCommentary(data.text);
             }
         });
 
@@ -585,7 +926,6 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // Host Room Creation
     createRoomBtn.addEventListener("click", () => {
         if (typeof Peer === "undefined") {
             alert("Unable to load PeerJS library. Please check your internet connection.");
@@ -604,7 +944,6 @@ document.addEventListener("DOMContentLoaded", () => {
         isHost = true;
         gameMode = "online";
 
-        // Generate clean Room ID
         const roomId = "ttt-" + Math.random().toString(36).substring(2, 9);
         peer = new Peer(roomId);
 
@@ -620,12 +959,10 @@ document.addEventListener("DOMContentLoaded", () => {
         });
 
         peer.on("error", (err) => {
-            console.error("Peer error:", err);
             alert("Connection error: " + err.message);
         });
     });
 
-    // Copy Link Button
     copyLinkBtn.addEventListener("click", () => {
         shareLinkInput.select();
         shareLinkInput.setSelectionRange(0, 99999);
@@ -639,7 +976,6 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
-    // Guest Join Button
     joinRoomBtn.addEventListener("click", () => {
         if (typeof Peer === "undefined") {
             alert("Unable to load PeerJS library. Please check your internet connection.");
@@ -664,19 +1000,16 @@ document.addEventListener("DOMContentLoaded", () => {
         });
 
         peer.on("error", (err) => {
-            console.error("Guest peer error:", err);
             alert("Could not connect to room: " + err.message);
         });
     });
 
-    // Check URL for Guest Room Invitation (#room=...)
     function checkUrlInvitation() {
         const hash = window.location.hash;
         if (hash && hash.includes("room=")) {
             const match = hash.match(/room=([a-zA-Z0-9_-]+)/);
             if (match && match[1]) {
                 pendingRoomId = match[1];
-                // Show Guest Panel
                 panelLocal.classList.remove("active");
                 panelOnline.classList.remove("active");
                 panelGuest.classList.remove("active");
@@ -691,7 +1024,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // ----------------------------------------------------
-    // Global Event Listeners
+    // Event Listeners
     // ----------------------------------------------------
     boxes.forEach((box) => {
         box.addEventListener("click", handleBoxClick);
@@ -725,9 +1058,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Initialize Game
     updateSoundButton();
+    updateVoiceButton();
+    updatePersonalityUI();
+
     const hasInvite = checkUrlInvitation();
     if (!hasInvite) {
-        // Open modal on first visit for player setup
         openModal();
         updateScoreDisplay();
         executeRestart(false);
