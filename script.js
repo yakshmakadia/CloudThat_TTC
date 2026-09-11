@@ -118,107 +118,102 @@ document.addEventListener("DOMContentLoaded", () => {
     // ----------------------------------------------------
     const PERSONALITIES = {
         savage: {
-            name: "Savage Roaster \u2620\ufe0f",
-            badge: "Savage Roaster \u2620\ufe0f",
-            pitch: 0.9,
+            name: "Savage Roast ☠️",
+            badge: "Savage Roast ☠️",
+            pitch: 0.95,
             rate: 1.05,
             openings: [
-                "And so it begins! Try not to embarrass your ancestors with this move.",
-                "Starting off bold, or did your finger just slip?",
-                "Center grab? Wow, how utterly predictable.",
-                "First move made. My expectations are in the basement."
+                "Khel shuru! Dekhte hain kisme kitna dimaag hai aur kaun bas tukke maar raha hai.",
+                "Arey waah, pehli hi chaal me itna overconfidence? Sahi hai guru!",
+                "Center pe kabza? Arey waah, bade tejaswi log hain yahan!",
+                "Chalo shuruaat toh hui, ab dekhte hain kitni der tik paate ho."
             ],
             blocks: [
-                "Denied! You thought you had an easy victory? Think again!",
-                "Blocked! That defense was actually not terrible.",
-                "Nice cockblock! The tension is slightly less boring now."
+                "Arey baap re! Block kar diya! Nice try babumoshai, par daal nahi galegi!",
+                "Ruk ja re bande! Itni aasaani se jeetne thode hi denge!",
+                "Khatarnak block! Khiladi ne seedha rasta hi band kar diya!"
             ],
             blunders: [
-                "Did you seriously leave that wide open? A toddler could win right now!",
-                "Are you playing to win, or are you secretly donating points?",
-                "Bold strategy! By bold, I mean spectacularly foolish."
+                "Kya gunda banega re tu! Khula chhod diya, ab toh bachha bhi jeet jaye!",
+                "Aankh band karke click kiya kya? Yeh kaunsi chaal thi bhai?!",
+                "Lagta hai haarne ki bohot jaldi hai tumhe!"
             ],
             general: [
-                "Fascinating. An entire board and that's the square you chose?",
-                "Every move brings us closer to the sweet release of a game over.",
-                "The clock is ticking and my patience is vanishing!",
-                "Calculating your chances of winning... Error: Number too low to display."
+                "Itna soch ke bhi yeh chaal chali? Gazab beizzati hai yaar!",
+                "Arey bhai, thoda dimaag use kar lo, thoda sa bas!",
+                "Aise kheloge toh agle janam me bhi nahi jeet paoge!",
+                "Calculating your chances... Error: Dimaag not found!"
             ],
             wins: [
-                "Pack your bags, loser! Absolute domination on this board!",
-                "Checkmate! Well, not chess, but you got destroyed anyway!",
-                "Flawless execution! Someone call an ambulance for the opponent's pride!"
+                "Khatam! Tata! Bye-bye! Ho gaya kaam tamaam!",
+                "Ekdum dhuandhaar jeet! Opponent ki toh bolti band ho gayi!",
+                "Yeh toh hona hi tha! Ek taraf sher, doosri taraf dher!"
             ],
             draws: [
-                "A draw? Both of you managed to fail at winning together. Poetic.",
-                "Nine squares filled, zero brains utilized. Classic tie.",
-                "Nobody wins, and everyone lost two minutes of their lives."
+                "Match tie ho gaya! Dono ne milkar solid timepass kiya hai aaj!",
+                "Na tum jeete, na wo jeeta! Poora draw, zero result!",
+                "Dono barabar ke nikle, dimaag kisi ne nahi lagaya!"
             ]
         },
         hype: {
-            name: "Hype Caster 🔥",
-            badge: "Hype Caster 🔥",
-            pitch: 1.2,
+            name: "Dhamakedar Hype 🔥",
+            badge: "Dhamakedar Hype 🔥",
+            pitch: 1.15,
             rate: 1.2,
             openings: [
-                "WELCOME TO THE ARENA! THE CROWD IS ELECTRIC FOR MOVE ONE!",
-                "FIRST MOVE ON THE BOARD! THE AGGRESSION IS UNREAL TODAY!",
-                "CENTER STAGE CLAIMED! THIS MATCH IS GOING DOWN IN HISTORY!"
+                "SWAGAT HAI SABHI KA! KHEL SHURU HO CHUKA HAI POORE JOSH MEIN!",
+                "PEHLI HI CHAAL MEIN TEHLKA MACHA DIYA HAI KHILADI NE!",
+                "KYA SHURUAAT HAI! STADIUM MEIN TALIYAAN RUK NAHI RAHI!"
             ],
             blocks: [
-                "CLUTCH DEFENSE! WHAT A HUGE BLOCK FROM DOWNTOWN!",
-                "REJECTED AT THE RIM! THAT WIN CONDITION IS SHUT DOWN!",
-                "UNBELIEVABLE REFLEXES! THEY SAW IT COMING FROM A MILE AWAY!"
+                "BAWAAL BLOCK! KYA SOLID DEFENSE DIKHAYA HAI AAJ!",
+                "OUTSTANDING MOVE! JEET KA RASTA PURA ROK DIYA!",
+                "KAMAAL KA REFLEX! INHE MASTERMIND AISE HI NAHI KEHTE!"
             ],
             blunders: [
-                "OH NO! DANGER ZONE! THE TRAP IS SET WIDE OPEN!",
-                "HIGH RISK MOVE! CAN THEY SURVIVE THE NEXT TURN?!",
-                "MY HEART CANNOT TAKE THIS! ABSOLUTE CHAOS ON THE GRID!"
+                "OH BHAI MAARO MUJHE! KYA CHANCE CHHOD DIYA KHILADI NE!",
+                "KHATARNAAK MOD! AGLE TURN MEIN HOGA BADA DHAMAKA!"
             ],
             general: [
-                "THE MIND GAMES ARE OFF THE CHARTS IN THIS ARENA!",
-                "TACTICAL MASTERY ON DISPLAY! WHO WILL BLINK FIRST?!",
-                "EVERY SINGLE SQUARE COUNTS! WE ARE WITNESSING GREATNESS!"
+                "HAR MOVE MEIN SUSPENSE! AGLE KADAM PAR KYA HOGA?!",
+                "PRESSURE HIGH HAI! DONO KHILADI AAMNE-SAAMNE DATT GAYE HAIN!",
+                "UNBELIEVABLE TENSION! ITIHAAS RACHA JA RAHA HAI DOSTO!"
             ],
             wins: [
-                "BOOM! IT'S OVER! WHAT AN ASTONISHING CHAMPIONSHIP VICTORY!",
-                "THREE IN A ROW! THE CROWD GOES ABSOLUTELY WILD!",
-                "UNSTOPPABLE! WRITE IT IN THE HISTORY BOOKS, WE HAVE A WINNER!"
+                "SHANDAR! ZABARDAST! ZINDABAD! KYA JEET HASIL KI HAI!",
+                "VICTORY! CHAMPION KHILADI NE MAIDAN MAAR LIYA HAI!",
+                "HISTORIC WIN! KYA KHELA HAI AAJ KA HERO!"
             ],
             draws: [
-                "AN IMMOVABLE OBJECT MEETS AN UNSTOPPABLE FORCE! IT IS A DRAW!",
-                "DEADLOCK! A COMPLETE STALEMATE AFTER A LEGENDARY BATTLE!"
+                "ROMAANCHAK DRAW! KANTE KI TAKKAR MEIN TIE HO GAYA!"
             ]
         },
         zen: {
-            name: "Zen Coach \U0001F60A",
-            badge: "Zen Coach \U0001F60A",
+            name: "Shanti Coach 😊",
+            badge: "Shanti Coach 😊",
             pitch: 0.95,
             rate: 0.9,
             openings: [
-                "Breathe in tranquility. A peaceful opening for a mindful journey.",
-                "Every move is a lesson. Place your marker with inner peace.",
-                "The board is a blank canvas. Paint it with harmony."
+                "Namaste dosto. Shanti se kheliye, har chaal jeevan ki seekh hai.",
+                "Sanyam banaye rakhein. Is yatra ka anand lein."
             ],
             blocks: [
-                "A mindful block. True balance has been preserved on the board.",
-                "Patience rewarded. You deflected the storm with calmness."
+                "Bohot sundar bachav. Santulan bana hua hai.",
+                "Dhairya se har mushkil tal jati hai."
             ],
             blunders: [
-                "A gentle slip. Do not despair, every misstep is an opportunity to learn.",
-                "Stay centered. Even in chaos, your spirit remains untroubled."
+                "Koi baat nahi. Har galti ek naya sabak sikhati hai."
             ],
             general: [
-                "Feel the flow of the game. Win or lose, peace resides within.",
-                "A thoughtful choice. The grid reflects your inner contemplation.",
-                "Observe without judgment. Beautiful patterns are forming."
+                "Dhyan lagakar khelein, shanti hi asli jeet hai.",
+                "Sundar soch. Khel ka shanti se anand lein."
             ],
             wins: [
-                "Splendid triumph! Victory and grace walk hand in hand.",
-                "Congratulations. Your patience has blossomed into harmony."
+                "Sundar jeet! Shanti aur parishram ka meetha phal mila.",
+                "Badhai ho! Aapke dhairya ne kamaal kar diya."
             ],
             draws: [
-                "A perfect equilibrium. Neither won, neither lost. Pure balance."
+                "Samaan santulan. Dono ne sundar sanyam dikhaya."
             ]
         }
     };
@@ -281,11 +276,16 @@ document.addEventListener("DOMContentLoaded", () => {
             utterance.pitch = p.pitch;
             utterance.rate = p.rate;
 
-            // Pick a good English voice if available
+            // Pick Hindi (hi-IN / hi) or Indian English voice if available
             const voices = window.speechSynthesis.getVoices();
             if (voices.length > 0) {
-                const enVoice = voices.find((v) => v.lang.startsWith("en") && !v.name.includes("Whisper"));
-                if (enVoice) utterance.voice = enVoice;
+                const hiVoice = voices.find((v) => v.lang.startsWith("hi") || v.lang.includes("IN") || v.name.includes("India") || v.name.includes("Hindi"));
+                if (hiVoice) {
+                    utterance.voice = hiVoice;
+                } else {
+                    const fallback = voices.find((v) => v.lang.startsWith("en"));
+                    if (fallback) utterance.voice = fallback;
+                }
             }
 
             aiAvatar.classList.add("talking");
@@ -371,20 +371,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // If Gemini API Key is present, try LLM generation
         if (geminiApiKey) {
-            let prompt = `You are a live commentator in a 2-player Tic-Tac-Toe game. Your persona is: ${personalityDesc}.
-Keep your response under 15 words. Be punchy, hilarious, and in-character. No hashtags.
+            let prompt = `You are a hilarious, witty Indian commentator for a 2-player Tic-Tac-Toe game.
+Your persona: ${personalityDesc}.
+LANGUAGE: Conversational Hindi / Hinglish (Latin alphabet, e.g. "Arey bhai kya move chal diya!", "Khatam tata bye bye!").
+Rule: Under 12 words. Super funny, sarcastic or dramatic Indian humor. No hashtags. No English sentences.
 Context: `;
 
             if (contextType === "win") {
-                prompt += `Player "${activePlayerName}" just WON the match! Roast the loser or hype the victory!`;
+                prompt += `Player "${activePlayerName}" match JEET gaya! Loser ko roast karo ya winner ko badhai do!`;
             } else if (contextType === "draw") {
-                prompt += `The match ended in a DRAW/TIE!`;
+                prompt += `Match DRAW / TIE ho gaya! Dono khiladiyon pe funny comment karo!`;
             } else if (contextType === "block") {
-                prompt += `Player "${activePlayerName}" just made a clutch BLOCK against their opponent!`;
+                prompt += `Player "${activePlayerName}" ne opponent ko BLOCK karke rasta band kar diya!`;
             } else if (moveCount <= 2) {
-                prompt += `Opening move by Player "${activePlayerName}".`;
+                prompt += `Pehla ya doosra move by Player "${activePlayerName}". Shuruaat pe comment karo.`;
             } else {
-                prompt += `Player "${activePlayerName}" just placed their mark at cell ${moveIndex}. Current move count is ${moveCount}.`;
+                prompt += `Player "${activePlayerName}" ne move chala. Match chal raha hai.`;
             }
 
             comment = await requestGeminiCommentary(prompt);
@@ -750,8 +752,8 @@ Context: `;
             box.setAttribute("aria-label", `Cell ${index + 1}`);
         });
 
-        commentaryText.textContent = `"New round! Let's see who brings their A-game this time."`;
-        speakCommentary("New round! Let's see who brings their A-game.");
+        commentaryText.textContent = `"Naya round shuru! Is baar dimaag lagana sabhi!"`;
+        speakCommentary("Naya round shuru! Is baar dimaag lagana sabhi!");
         updateTurn();
     }
 
@@ -849,7 +851,7 @@ Context: `;
             window.speechSynthesis.cancel();
             aiAvatar.classList.remove("talking");
         } else if (isVoiceEnabled) {
-            speakCommentary("Voice commentary activated!");
+            speakCommentary("Hindi commentary shuru ho gayi hai!");
         }
     });
 
