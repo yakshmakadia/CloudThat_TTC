@@ -303,27 +303,39 @@ document.addEventListener("DOMContentLoaded", () => {
     // ----------------------------------------------------
     async function requestGeminiCommentary(promptText) {
         if (!geminiApiKey) return null;
-        try {
-            const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`;
-            const body = {
-                contents: [{ parts: [{ text: promptText }] }],
-                generationConfig: {
-                    maxOutputTokens: 50,
-                    temperature: 0.95
+
+        const models = ["gemini-flash-lite-latest", "gemini-flash-latest"];
+        for (const model of models) {
+            try {
+                const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${geminiApiKey}`;
+                const body = {
+                    contents: [{ parts: [{ text: promptText }] }],
+                    generationConfig: {
+                        maxOutputTokens: 50,
+                        temperature: 0.95
+                    }
+                };
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 2500);
+
+                const response = await fetch(endpoint, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(body),
+                    signal: controller.signal
+                });
+                clearTimeout(timeoutId);
+
+                if (response.ok) {
+                    const data = await response.json();
+                    const reply = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+                    if (reply) return reply.replace(/^["']|["']$/g, "");
                 }
-            };
-            const response = await fetch(endpoint, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(body)
-            });
-            if (!response.ok) return null;
-            const data = await response.json();
-            const reply = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
-            return reply ? reply.replace(/^["']|["']$/g, "") : null;
-        } catch (e) {
-            return null;
+            } catch (e) {
+                // Fall back to next model or contextual quips
+            }
         }
+        return null;
     }
 
     function getLocalQuip(category) {
