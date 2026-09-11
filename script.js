@@ -877,6 +877,38 @@ Context: `;
     // ----------------------------------------------------
     // Realtime Online Multiplayer (WebRTC / PeerJS)
     // ----------------------------------------------------
+    const PEER_CONFIG = {
+        debug: 1,
+        config: {
+            iceServers: [
+                { urls: "stun:stun.l.google.com:19302" },
+                { urls: "stun:stun1.l.google.com:19302" },
+                { urls: "stun:stun2.l.google.com:19302" },
+                { urls: "stun:global.stun.twilio.com:3478" }
+            ],
+            sdpSemantics: "unified-plan"
+        }
+    };
+
+    let heartbeatInterval = null;
+    function startHeartbeat(p) {
+        if (heartbeatInterval) clearInterval(heartbeatInterval);
+        heartbeatInterval = setInterval(() => {
+            if (!p || p.destroyed) {
+                clearInterval(heartbeatInterval);
+                return;
+            }
+            if (p.disconnected) {
+                console.warn("Peer disconnected from signaling broker, reconnecting...");
+                p.reconnect();
+            } else if (p.socket && p.socket._open) {
+                try {
+                    p.socket.send({ type: "HEARTBEAT" });
+                } catch (e) {}
+            }
+        }, 12000);
+    }
+
     function setupPeerConnection(conn) {
         connection = conn;
 
@@ -936,13 +968,13 @@ Context: `;
         });
 
         connection.on("error", (err) => {
-            console.error("Peer connection error:", err);
+            console.error("DataConnection error:", err);
         });
     }
 
     createRoomBtn.addEventListener("click", () => {
         if (typeof Peer === "undefined") {
-            alert("Unable to load PeerJS library. Please check your internet connection.");
+            alert("PeerJS library not loaded. Please check your internet connection.");
             return;
         }
 
@@ -958,14 +990,36 @@ Context: `;
         isHost = true;
         gameMode = "online";
 
-        const roomId = "ttt-" + Math.random().toString(36).substring(2, 9);
-        peer = new Peer(roomId);
+        createRoomBtn.disabled = true;
+        createRoomBtn.textContent = "Creating Room...";
+
+        if (peer && !peer.destroyed) {
+            peer.destroy();
+        }
+
+        // Clean room ID: alphanumeric lowercase
+        const roomId = "ttt" + Math.random().toString(36).substring(2, 8);
+        peer = new Peer(roomId, PEER_CONFIG);
+
+        startHeartbeat(peer);
 
         peer.on("open", (id) => {
-            const shareUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + "#room=" + id;
+            createRoomBtn.disabled = false;
+            createRoomBtn.textContent = "Create Game & Get Link";
+
+            let baseUrl = window.location.href.split("#")[0].split("?")[0];
+            if (window.location.protocol === "file:") {
+                baseUrl = "https://yakshmakadia.github.io/CloudThat_TTC/";
+            }
+            const shareUrl = baseUrl + "#room=" + id;
             shareLinkInput.value = shareUrl;
             onlineCreateView.classList.add("hidden");
             onlineWaitingView.classList.remove("hidden");
+        });
+
+        peer.on("disconnected", () => {
+            console.warn("Host disconnected from signaling server, reconnecting...");
+            if (peer && !peer.destroyed) peer.reconnect();
         });
 
         peer.on("connection", (conn) => {
@@ -973,7 +1027,13 @@ Context: `;
         });
 
         peer.on("error", (err) => {
-            alert("Connection error: " + err.message);
+            createRoomBtn.disabled = false;
+            createRoomBtn.textContent = "Create Game & Get Link";
+            if (err.type === "unavailable-id") {
+                createRoomBtn.click();
+            } else {
+                alert("Room error: " + (err.message || err.type));
+            }
         });
     });
 
@@ -992,7 +1052,7 @@ Context: `;
 
     joinRoomBtn.addEventListener("click", () => {
         if (typeof Peer === "undefined") {
-            alert("Unable to load PeerJS library. Please check your internet connection.");
+            alert("PeerJS library not loaded. Please check your internet connection.");
             return;
         }
 
@@ -1001,38 +1061,74 @@ Context: `;
         isHost = false;
         gameMode = "online";
 
-        peer = new Peer();
+        joinRoomBtn.disabled = true;
+        joinRoomBtn.textContent = "Connecting to Room...";
+
+        if (peer && !peer.destroyed) {
+            peer.destroy();
+        }
+
+        peer = new Peer(PEER_CONFIG);
+        startHeartbeat(peer);
+
         peer.on("open", () => {
-            const conn = peer.connect(pendingRoomId);
+            const conn = peer.connect(pendingRoomId, {
+                reliable: true,
+                serialization: "json"
+            });
+
+            setupPeerConnection(conn);
+
             conn.on("open", () => {
                 conn.send({
                     type: "GUEST_HELLO",
                     guestName: gName
                 });
             });
-            setupPeerConnection(conn);
+        });
+
+        peer.on("disconnected", () => {
+            console.warn("Guest disconnected from signaling server, reconnecting...");
+            if (peer && !peer.destroyed) peer.reconnect();
         });
 
         peer.on("error", (err) => {
-            alert("Could not connect to room: " + err.message);
+            console.error("Guest peer error:", err);
+            joinRoomBtn.disabled = false;
+            joinRoomBtn.textContent = "Join & Start Playing";
+
+            if (err.type === "peer-unavailable") {
+                alert(`Room "${pendingRoomId}" not found or Host disconnected.
+
+Make sure Player 1:
+1. Has created the room.
+2. Still has their game window open on the "Room Created" screen!`);
+            } else {
+                alert("Could not connect to room: " + (err.message || err.type));
+            }
         });
     });
 
     function checkUrlInvitation() {
-        const hash = window.location.hash;
-        if (hash && hash.includes("room=")) {
-            const match = hash.match(/room=([a-zA-Z0-9_-]+)/);
-            if (match && match[1]) {
-                pendingRoomId = match[1];
-                panelLocal.classList.remove("active");
-                panelOnline.classList.remove("active");
-                panelGuest.classList.remove("active");
-                document.getElementById("mode-tabs").classList.add("hidden");
-                panelGuest.classList.remove("hidden");
-                panelGuest.classList.add("active");
-                openModal();
-                return true;
-            }
+        let roomId = null;
+        if (window.location.hash && window.location.hash.includes("room=")) {
+            const match = window.location.hash.match(/room=([a-zA-Z0-9_-]+)/);
+            if (match) roomId = match[1];
+        } else if (window.location.search && window.location.search.includes("room=")) {
+            const params = new URLSearchParams(window.location.search);
+            roomId = params.get("room");
+        }
+
+        if (roomId) {
+            pendingRoomId = roomId;
+            panelLocal.classList.remove("active");
+            panelOnline.classList.remove("active");
+            panelGuest.classList.remove("active");
+            document.getElementById("mode-tabs").classList.add("hidden");
+            panelGuest.classList.remove("hidden");
+            panelGuest.classList.add("active");
+            openModal();
+            return true;
         }
         return false;
     }
