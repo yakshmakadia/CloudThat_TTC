@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Tic-Tac-Toe: ☠️ vs 😊</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&amp;family=Outfit:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+    <!-- PeerJS for Realtime WebRTC Multiplayer -->
+    <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <canvas id="confetti-canvas"></canvas>
+
+    <!-- Setup & Modal Dialog -->
+    <div id="setup-modal" class="modal-backdrop">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2 class="modal-title">Tic-Tac-Toe</h2>
+                <p class="modal-subtitle">Choose Mode &amp; Customize Players</p>
+            </div>
+
+            <!-- Mode Switcher Tabs -->
+            <div class="mode-tabs" id="mode-tabs">
+                <button type="button" id="tab-local" class="tab-btn active">
+                    <span class="tab-icon">🎮</span> Pass &amp; Play
+                </button>
+                <button type="button" id="tab-online" class="tab-btn">
+                    <span class="tab-icon">🌐</span> Play Online
+                </button>
+            </div>
+
+            <!-- Section 1: Local Pass & Play Setup -->
+            <div id="panel-local" class="setup-panel active">
+                <div class="form-group">
+                    <label for="p1-name" class="form-label">Player 1 Name</label>
+                    <input type="text" id="p1-name" class="form-input" placeholder="Player 1" value="Player 1" maxlength="12">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Player 1 Emoji</label>
+                    <div class="emoji-picker-group">
+                        <button type="button" class="emoji-select-btn active" data-emoji="☠️">
+                            <span class="emoji-char">☠️</span>
+                        </button>
+                        <button type="button" class="emoji-select-btn" data-emoji="😊">
+                            <span class="emoji-char">😊</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="p2-name" class="form-label">Player 2 Name</label>
+                    <input type="text" id="p2-name" class="form-input" placeholder="Player 2" value="Player 2" maxlength="12">
+                    <p class="form-hint">Gets the other emoji: <strong id="p2-assigned-emoji">😊</strong></p>
+                </div>
+
+                <button type="button" id="start-local-btn" class="btn btn-primary modal-action-btn">
+                    Start Local Game
+                </button>
+            </div>
+
+            <!-- Section 2: Online Host Setup -->
+            <div id="panel-online" class="setup-panel">
+                <div id="online-create-view">
+                    <div class="form-group">
+                        <label for="host-name" class="form-label">Your Name</label>
+                        <input type="text" id="host-name" class="form-input" placeholder="Your Name" value="Player 1" maxlength="12">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Choose Your Emoji</label>
+                        <div class="emoji-picker-group">
+                            <button type="button" class="emoji-select-btn online-emoji-btn active" data-emoji="☠️">
+                                <span class="emoji-char">☠️</span>
+                            </button>
+                            <button type="button" class="emoji-select-btn online-emoji-btn" data-emoji="😊">
+                                <span class="emoji-char">😊</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <button type="button" id="create-room-btn" class="btn btn-primary modal-action-btn">
+                        Create Game &amp; Get Link
+                    </button>
+                </div>
+
+                <!-- Host Waiting View with Copy Link -->
+                <div id="online-waiting-view" class="hidden">
+                    <div class="room-created-box">
+                        <span class="pulse-indicator"></span>
+                        <h4 class="waiting-title">Room Created!</h4>
+                        <p class="waiting-desc">Share this link with your friend to play together in real-time:</p>
+                        
+                        <div class="share-link-wrapper">
+                            <input type="text" id="share-link-input" class="share-input" readonly>
+                            <button type="button" id="copy-link-btn" class="btn btn-primary copy-btn" title="Copy Link">
+                                Copy Link
+                            </button>
+                        </div>
+                        <div id="copy-toast" class="copy-toast hidden">Link copied to clipboard!</div>
+
+                        <div class="connection-status-msg">
+                            <span class="spinner"></span> Waiting for player 2 to open link and join...
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 3: Online Guest Join Setup (when URL has #room=...) -->
+            <div id="panel-guest" class="setup-panel hidden">
+                <div class="guest-welcome-box">
+                    <span class="invite-icon">💌</span>
+                    <h3 class="guest-title">You've Been Invited!</h3>
+                    <p id="guest-host-info" class="guest-info">Playing against your friend</p>
+                </div>
+
+                <div class="form-group">
+                    <label for="guest-name" class="form-label">Your Name</label>
+                    <input type="text" id="guest-name" class="form-input" placeholder="Your Name" value="Player 2" maxlength="12">
+                </div>
+
+                <div class="guest-emoji-assigned">
+                    Your Emoji: <strong id="guest-assigned-emoji">😊</strong>
+                </div>
+
+                <button type="button" id="join-room-btn" class="btn btn-primary modal-action-btn">
+                    Join &amp; Start Playing
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Game Container -->
+    <main class="game-container">
+        <!-- Top Header -->
+        <header class="game-header">
+            <button type="button" id="open-setup-btn" class="icon-btn header-left-btn" title="Switch Game Mode / Players" aria-label="Game Settings">
+                ⚙️
+            </button>
+            <div class="header-content">
+                <h1 class="title">Tic-Tac-Toe</h1>
+                <div id="online-status-pill" class="online-pill hidden">
+                    <span class="status-dot"></span>
+                    <span id="online-status-text">Online Match</span>
+                </div>
+            </div>
+            <button type="button" id="sound-toggle" class="icon-btn header-right-btn" title="Toggle Sound" aria-label="Toggle Sound">
+                <span id="sound-icon">🔊</span>
+            </button>
+        </header>
+
+        <!-- Scoreboard with custom player names -->
+        <section class="score-board" aria-label="Score Board">
+            <div class="score-card player-x">
+                <div class="score-header">
+                    <span id="score-x-emoji" class="score-emoji">☠️</span>
+                    <span id="score-x-name" class="score-player-name">Player 1</span>
+                </div>
+                <div id="score-x" class="score-value">0</div>
+            </div>
+            <div class="score-card ties">
+                <div class="score-header">
+                    <span class="score-emoji">🤝</span>
+                    <span class="score-player-name">Draws</span>
+                </div>
+                <div id="score-ties" class="score-value">0</div>
+            </div>
+            <div class="score-card player-o">
+                <div class="score-header">
+                    <span id="score-o-emoji" class="score-emoji">😊</span>
+                    <span id="score-o-name" class="score-player-name">Player 2</span>
+                </div>
+                <div id="score-o" class="score-value">0</div>
+            </div>
+        </section>
+
+        <!-- Turn Indicator -->
+        <section class="turn-section">
+            <div class="turn-meta">
+                <span id="turn-subtitle" class="turn-title">Current Turn</span>
+                <span id="online-turn-hint" class="turn-role-hint hidden"></span>
+            </div>
+            <div class="turn-container">
+                <div id="turnX" class="turn-box active">
+                    <span id="turn-x-emoji" class="turn-emoji">☠️</span>
+                    <span id="turn-x-label" class="turn-label">Player 1</span>
+                </div>
+                <div id="turnO" class="turn-box">
+                    <span id="turn-o-emoji" class="turn-emoji">😊</span>
+                    <span id="turn-o-label" class="turn-label">Player 2</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3x3 Grid Board -->
+        <section class="board-wrapper">
+            <div id="board" class="main-grid" role="grid" aria-label="Tic Tac Toe Board">
+                <button type="button" class="box" data-index="0" aria-label="Cell 1"></button>
+                <button type="button" class="box" data-index="1" aria-label="Cell 2"></button>
+                <button type="button" class="box" data-index="2" aria-label="Cell 3"></button>
+                <button type="button" class="box" data-index="3" aria-label="Cell 4"></button>
+                <button type="button" class="box" data-index="4" aria-label="Cell 5"></button>
+                <button type="button" class="box" data-index="5" aria-label="Cell 6"></button>
+                <button type="button" class="box" data-index="6" aria-label="Cell 7"></button>
+                <button type="button" class="box" data-index="7" aria-label="Cell 8"></button>
+                <button type="button" class="box" data-index="8" aria-label="Cell 9"></button>
+            </div>
+        </section>
+
+        <!-- Result Announcement -->
+        <div class="status-container">
+            <h2 id="results" class="results-text" aria-live="polite"></h2>
+        </div>
+
+        <!-- Action Buttons -->
+        <footer class="action-buttons">
+            <button type="button" id="play-again" class="btn btn-primary">
+                <span class="btn-icon">🔄</span> Play Again
+            </button>
+            <button type="button" id="reset-score" class="btn btn-secondary">
+                <span class="btn-icon">⚡</span> Reset Score
+            </button>
+        </footer>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
